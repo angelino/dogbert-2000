@@ -1,7 +1,8 @@
 (ns dogbert-2000.core
   (:require [ring.adapter.jetty :as jetty]
-            [ring.util.response :refer [response]]
+            [ring.util.response :refer [response redirect]]
             [ring.handler.dump :refer [handle-dump]]
+            [ring.middleware.params :refer [wrap-params]]
             [compojure.core :refer [defroutes GET POST]]
             [hiccup.page :refer [html5]]
             [hiccup.core :refer [html]]
@@ -25,12 +26,17 @@
 (defn handle-index [req]
   (response (index-page)))
 
+(defn handle-show-url [req]
+  (redirect (str "http://www.google.com?q=" (get-in req [:params :url-id]))))
+
 (defroutes routes
   (GET "/" [] handle-index)
+  (GET "/:url-id" [] handle-show-url)
   (POST "/urls" [] handle-dump))
 
 (def app
-  routes)
+  (-> routes
+      wrap-params))
 
 (defn -main [port]
   (jetty/run-jetty app {:port (Integer. port)}))
