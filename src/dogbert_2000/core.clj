@@ -1,6 +1,8 @@
 (ns dogbert-2000.core
   (:require [ring.adapter.jetty :as jetty]
             [ring.util.response :refer [response]]
+            [ring.handler.dump :refer [handle-dump]]
+            [compojure.core :refer [defroutes GET POST]]
             [hiccup.page :refer [html5]]
             [hiccup.core :refer [html]]
             [hiccup.form :refer [form-to
@@ -20,8 +22,15 @@
     [:div.content
      (shortener-form)]]))
 
-(defn handle-hello [req]
+(defn handle-index [req]
   (response (index-page)))
 
+(defroutes routes
+  (GET "/" [] handle-index)
+  (POST "/urls" [] handle-dump))
+
+(def app
+  routes)
+
 (defn -main [port]
-  (jetty/run-jetty handle-hello {:port (Integer. port)}))
+  (jetty/run-jetty app {:port (Integer. port)}))
