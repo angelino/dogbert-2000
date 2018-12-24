@@ -12,16 +12,25 @@
 
 (defn shortener-form []
   (html (form-to [:post "/urls"]
-                 (text-field "url")
-                 (submit-button "Shorten"))))
+                 [:div.field.has-addons
+                  [:div.control
+                   [:input.input
+                    {:type :text
+                     :name "url"
+                     :placeholder "Shorten an url"}]]
+                  [:div.control
+                   [:button.button.is-info {:type :submit} "Shorten"]]])))
 
 (defn index-page []
   (html5
-   [:head]
+   [:head
+    [:meta {:charset "utf-8"}]
+    [:meta {:name "viewport" :content "width=device-width, initial-scale=1"}]
+    [:link {:rel "stylesheet" :href "https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.2/css/bulma.css"}]]
    [:body
-    [:h1 "Dogbert 2000 (A Bit.ly clone)"]
-    [:div.content
-     (shortener-form)]]))
+    [:div.container
+     [:h1.title.is-1 "Dogbert 2000 (A Bit.ly clone)"]
+     [:div (shortener-form)]]]))
 
 (defn handle-index [req]
   (response (index-page)))
