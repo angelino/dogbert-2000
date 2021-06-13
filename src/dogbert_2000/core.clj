@@ -75,6 +75,7 @@
 
 (defroutes routes
   (GET "/debug" [] handle-dump)
+  (GET  "/"     [] handle-index-url)
   (GET  "/urls" [] handle-index-url)
   (POST "/urls" [] handle-create-url)
   (GET  "/:url" [] handle-redirect-url)
