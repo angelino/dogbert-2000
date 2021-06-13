@@ -84,5 +84,7 @@
   (-> routes
       wrap-params))
 
-(defn -main [port]
-  (jetty/run-jetty app {:port (Integer. port)}))
+(defn -main [& [port]]
+  (let [p (Integer. (or port 5000))]
+    (println "Server running on port:" p)
+    (jetty/run-jetty app {:port p})))
