@@ -1,14 +1,14 @@
 # dogbert-2000
 
-A Clojure library designed to ... well, that part is up to you.
+A Clojure app designed to shorten the urls based on http://tutorials.jumpstartlab.com/projects/jet_fuel.html.
 
 ## Usage
 
-FIXME
+```shellscript
+  lein run
+```
 
 ## License
 
-Copyright © 2018 FIXME
+Copyright © 2021 Lucas Angelino dos Santos
 
-Distributed under the Eclipse Public License either version 1.0 or (at
-your option) any later version.
