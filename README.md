@@ -16,7 +16,13 @@ A Clojure app designed to shorten the urls based on http://tutorials.jumpstartla
   lein run
 ```
 
+## Run on Docker
+
+```shellscript
+  docker compose up -d
+```
+
 ## License
 
-Copyright © 2021 Lucas Angelino dos Santos
+Copyright © 2024 Lucas Angelino dos Santos
 
