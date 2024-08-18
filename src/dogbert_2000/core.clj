@@ -49,19 +49,29 @@
 
 (defonce database (atom {}))
 
+(defn store-url! [{:keys [shorten-url url]}]
+  (swap! database assoc shorten-url url))
+
+(defn get-url [url-id]
+  (get @database url-id))
+
+(defn get-urls []
+  (map #(hash-map :url-id (first %)
+                  :shorten-url (first %)
+                  :url (last %))
+       @database))
+
 (defn url-for [{:keys [scheme server-name server-port]} resource]
   (str (name scheme) "://" server-name ":" server-port "/" resource))
 
 (defn handle-index-url [req]
-  (let [urls (map #(hash-map :url-id (first %)
-                             :shorten-url (url-for req (first %))
-                             :url (last %))
-                  @database)]
+  (let [urls (map #(update % :shorten-url (partial url-for req))
+                  (get-urls))]
     (response (index-page urls))))
 
 (defn handle-redirect-url [req]
   (let [url-id (get-in req [:params :url])
-        target-url (get @database url-id)]
+        target-url (get-url url-id)]
     (println "Redirecting" url-id "to" target-url)
     (redirect target-url)))
 
@@ -70,7 +80,7 @@
 
 (defn handle-create-url [req]
   (let [url (get-in req [:params "url"])]
-    (swap! database assoc (shorten-url url) url)
+    (store-url! {:shorten-url (shorten-url url) :url url})
     (redirect "/urls")))
 
 (defroutes routes
