@@ -61,7 +61,8 @@
                     :url (last %))
          @database))
 
-(defonce conn-opts {:spec {:uri "redis://localhost:6379/1"}
+(defonce conn-opts {:spec {:uri (or (System/getenv "REDIS_URI")
+                                    "redis://localhost:6379/1")}
                     #_#_:pool (redis/connection-pool {})})
 (comment
   (carmine/wcar

@@ -3,4 +3,16 @@ services:
     build: .
     ports:
       - "3000:3000"
-
+    environment:
+      REDIS_URI: "redis://redis-stack:6379/1"
+    depends_on:
+      - redis-stack
+  redis-stack:
+    image: redis/redis-stack
+    ports:
+      - "6379:6379"
+      - "8001:8001"
+    volumes:
+      - redis-data:/data
+volumes:
+  redis-data:
