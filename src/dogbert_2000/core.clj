@@ -1,15 +1,15 @@
 (ns dogbert-2000.core
-  (:require [ring.adapter.jetty :as jetty]
-            [ring.util.response :refer [response redirect]]
-            [ring.handler.dump :refer [handle-dump]]
-            [ring.middleware.params :refer [wrap-params]]
-            [compojure.core :refer [defroutes GET POST]]
-            [compojure.route :refer [not-found]]
-            [hiccup.page :refer [html5]]
-            [hiccup.core :refer [html]]
-            [hiccup.form :refer [form-to
-                                 text-field
-                                 submit-button]]))
+  (:require
+   [compojure.core :refer [defroutes GET POST]]
+   [compojure.route :refer [not-found]]
+   [hiccup.core :refer [html]]
+   [hiccup.form :refer [form-to]]
+   [hiccup.page :refer [html5]]
+   [ring.handler.dump :refer [handle-dump]]
+   [ring.middleware.params :refer [wrap-params]]
+   [ring.util.response :refer [redirect response]]
+   [taoensso.carmine :as carmine]
+   [taoensso.telemere :as t]))
 
 (defn header-component []
   (html
@@ -47,19 +47,46 @@
           " - "
           (:url page)])]]]]))
 
-(defonce database (atom {}))
+#_(defonce database (atom {}))
+
+#_(defn store-url! [{:keys [shorten-url url]}]
+    (swap! database assoc shorten-url url))
+
+#_(defn get-url [url-id]
+    (get @database url-id))
+
+#_(defn get-urls []
+    (map #(hash-map :url-id (first %)
+                    :shorten-url (first %)
+                    :url (last %))
+         @database))
+
+(defonce conn-opts {:spec {:uri "redis://localhost:6379/1"}
+                    #_#_:pool (redis/connection-pool {})})
+(comment
+  (carmine/wcar
+   conn-opts
+   (carmine/ping)
+   (redis/set "Hello" "World!")
+   (carmine/get "Hello"))
+  :end)
 
 (defn store-url! [{:keys [shorten-url url]}]
-  (swap! database assoc shorten-url url))
+  (t/log! :info (str "Storing " url " as " shorten-url))
+  (carmine/wcar
+   conn-opts
+   (carmine/set shorten-url url)))
 
 (defn get-url [url-id]
-  (get @database url-id))
+  (carmine/wcar
+   conn-opts
+   (carmine/get url-id)))
 
 (defn get-urls []
-  (map #(hash-map :url-id (first %)
-                  :shorten-url (first %)
-                  :url (last %))
-       @database))
+  (map #(hash-map :url-id %
+                  :shorten-url %
+                  :url (get-url %))
+       (carmine/wcar conn-opts (carmine/keys "*"))))
 
 (defn url-for [{:keys [scheme server-name server-port]} resource]
   (str (name scheme) "://" server-name ":" server-port "/" resource))
@@ -67,12 +94,13 @@
 (defn handle-index-url [req]
   (let [urls (map #(update % :shorten-url (partial url-for req))
                   (get-urls))]
+    (t/log! :info (into [] urls)) ;; FIXME: really need it?
     (response (index-page urls))))
 
 (defn handle-redirect-url [req]
   (let [url-id (get-in req [:params :url])
         target-url (get-url url-id)]
-    (println "Redirecting" url-id "to" target-url)
+    (t/log! :info (str "Redirecting " url-id " to " target-url))
     (redirect target-url)))
 
 (defn shorten-url [url]
